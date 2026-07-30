@@ -12,7 +12,26 @@
     "soft-parchment": { "name": "Soft Parchment", "paper": "#F2EBDD", "ink": "#100F0F" },
     "gallery-plaster": { "name": "Gallery Plaster", "paper": "#F1EFEA", "ink": "#111110" },
     "mineral-paper": { "name": "Mineral Paper", "paper": "#EDF0EF", "ink": "#0F1111" },
-    "blue-hour": { "name": "Blue Hour", "paper": "#E9EDF0", "ink": "#0E1115" }
+    "blue-hour": { "name": "Blue Hour", "paper": "#E9EDF0", "ink": "#0E1115" },
+    "grey-fruit": {
+      "name": "Grey Fruit",
+      "method": "Ghostty Apple System Colors anchors plus native macOS semantic surfaces; sparse UI roles are intentional aliases.",
+      "semantic": {
+        "light": {
+          "bg": "#FEFFFF", "bg2": "#F6F6F6", "ui": "#E6E6E6", "ui2": "#DCDCDC", "ui3": "#DCDCDC",
+          "tx3": "#98989D", "tx2": "#464646", "tx": "#000000",
+          "cursor": "#98989D", "cursorText": "#FFFFFF", "selection": "#ABD8FF", "selectionText": "#000000"
+        },
+        "dark": {
+          "bg": "#1E1E1E", "bg2": "#282828", "ui": "#343434", "ui2": "#464646", "ui3": "#464646",
+          "tx3": "#464646", "tx2": "#98989D", "tx": "#FFFFFF",
+          "cursor": "#98989D", "cursorText": "#FFFFFF", "selection": "#3F638B", "selectionText": "#FFFFFF"
+        }
+      },
+      "terminal": {
+        "black": "#1A1A1A", "brightBlack": "#464646", "white": "#98989D", "brightWhite": "#FFFFFF"
+      }
+    }
   },
   "accents": {
     "red": { "50":"#FFE1D5", "100":"#FFCABB", "150":"#FDB2A2", "200":"#F89A8A", "300":"#E8705F", "400":"#D14D41", "500":"#C03E35", "600":"#AF3029", "700":"#942822", "800":"#6C201C", "850":"#551B18", "900":"#3E1715", "950":"#261312" },

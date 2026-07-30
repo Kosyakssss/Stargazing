@@ -32,20 +32,38 @@ for name, shades in data["accents"].items():
         if value["hex"] != spec["accents"][name][step]: errors.append(f"{name}-{step}: hex drift")
 
 for slug, theme in data["themes"].items():
-    base = theme["base"]
-    if list(base) != steps: errors.append(f"{slug}: wrong base steps/order")
-    if base["paper"]["hex"] != spec["themes"][slug]["paper"]: errors.append(f"{slug}: paper endpoint drift")
-    if base["black"]["hex"] != spec["themes"][slug]["ink"]: errors.append(f"{slug}: ink endpoint drift")
-    lightness = [base[k]["oklch"]["l"] for k in steps]
-    if not all(a > b for a,b in zip(lightness,lightness[1:])): errors.append(f"{slug}: base lightness is not strictly descending")
-    paper,ink = base["paper"]["hex"],base["black"]["hex"]
-    checks = {
-        "light primary": (ink,paper,7.0), "light muted": (base["600"]["hex"],paper,4.5),
-        "dark primary": (base["200"]["hex"],ink,7.0), "dark muted": (base["500"]["hex"],ink,4.5),
-    }
-    for label,(fg,bg,minimum) in checks.items():
-        ratio = contrast(fg,bg)
-        if ratio < minimum: errors.append(f"{slug} {label}: {ratio:.2f} < {minimum:.1f}")
+    source = spec["themes"][slug]
+    if "semantic" in source:
+        if "base" in theme: errors.append(f"{slug}: sparse semantic family must not expose a fabricated base ramp")
+        expected_roles = {"bg", "bg2", "ui", "ui2", "ui3", "tx3", "tx2", "tx", "cursor", "cursorText", "selection", "selectionText"}
+        for mode in ("light", "dark"):
+            roles = theme["semantic"][mode]
+            if set(roles) != expected_roles: errors.append(f"{slug} {mode}: wrong semantic roles")
+            for key, value in roles.items():
+                if value["hex"] != source["semantic"][mode][key]: errors.append(f"{slug} {mode} {key}: hex drift")
+            checks = {
+                "primary": (roles["tx"]["hex"], roles["bg"]["hex"], 7.0),
+                "muted": (roles["tx2"]["hex"], roles["bg"]["hex"], 4.5),
+                "selection": (roles["selectionText"]["hex"], roles["selection"]["hex"], 4.5),
+            }
+            for label, (fg, bg, minimum) in checks.items():
+                ratio = contrast(fg, bg)
+                if ratio < minimum: errors.append(f"{slug} {mode} {label}: {ratio:.2f} < {minimum:.1f}")
+    else:
+        base = theme["base"]
+        if list(base) != steps: errors.append(f"{slug}: wrong base steps/order")
+        if base["paper"]["hex"] != source["paper"]: errors.append(f"{slug}: paper endpoint drift")
+        if base["black"]["hex"] != source["ink"]: errors.append(f"{slug}: ink endpoint drift")
+        lightness = [base[k]["oklch"]["l"] for k in steps]
+        if not all(a > b for a,b in zip(lightness,lightness[1:])): errors.append(f"{slug}: base lightness is not strictly descending")
+        paper,ink = base["paper"]["hex"],base["black"]["hex"]
+        checks = {
+            "light primary": (ink,paper,7.0), "light muted": (base["600"]["hex"],paper,4.5),
+            "dark primary": (base["200"]["hex"],ink,7.0), "dark muted": (base["500"]["hex"],ink,4.5),
+        }
+        for label,(fg,bg,minimum) in checks.items():
+            ratio = contrast(fg,bg)
+            if ratio < minimum: errors.append(f"{slug} {label}: {ratio:.2f} < {minimum:.1f}")
     if f'[data-stargazing="{slug}"]' not in css: errors.append(f"{slug}: missing CSS selector")
 
 for token in ("--sg-tx", "--sg-tx-2", "--sg-tx-3", "--sg-bg", "--sg-bg-2"):

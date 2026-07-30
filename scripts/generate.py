@@ -57,8 +57,22 @@ def ramp(paper: str, ink: str) -> dict[str,str]:
 
 output = {"name":SPEC["name"], "version":SPEC["version"], "themes":{}, "accents":{}}
 for slug, theme in SPEC["themes"].items():
-    colors = ramp(theme["paper"], theme["ink"])
-    output["themes"][slug] = {"name":theme["name"], "base":{k:{"hex":v,"oklch":hex_to_oklch(v)} for k,v in colors.items()}}
+    if "semantic" in theme:
+        output["themes"][slug] = {
+            "name": theme["name"],
+            "method": theme["method"],
+            "semantic": {
+                mode: {key: {"hex": value, "oklch": hex_to_oklch(value)} for key, value in roles.items()}
+                for mode, roles in theme["semantic"].items()
+            },
+            "terminal": {
+                key: {"hex": value, "oklch": hex_to_oklch(value)}
+                for key, value in theme["terminal"].items()
+            },
+        }
+    else:
+        colors = ramp(theme["paper"], theme["ink"])
+        output["themes"][slug] = {"name":theme["name"], "base":{k:{"hex":v,"oklch":hex_to_oklch(v)} for k,v in colors.items()}}
 for name, shades in SPEC["accents"].items():
     output["accents"][name] = {k:{"hex":v,"oklch":hex_to_oklch(v)} for k,v in shades.items()}
 
@@ -70,31 +84,49 @@ for name, shades in SPEC["accents"].items():
 css.append("}\n")
 for slug, theme in output["themes"].items():
     css.append(f'[data-stargazing="{slug}"] {{')
-    for step, value in theme["base"].items():
-        key = "paper" if step == "paper" else "ink" if step == "black" else f"base-{step}"
-        css += [f"  --sg-{key}: {value['hex']};", f"  --sg-{key}-oklch: {css_oklch(value['hex'])};"]
-    css += ["", "  /* Light semantic roles */", "  --sg-bg: var(--sg-paper);", "  --sg-bg-2: var(--sg-base-50);", "  --sg-ui: var(--sg-base-100);", "  --sg-ui-2: var(--sg-base-150);", "  --sg-ui-3: var(--sg-base-200);", "  --sg-tx-3: var(--sg-base-300);", "  --sg-tx-2: var(--sg-base-600);", "  --sg-tx: var(--sg-ink);", "  --sg-re: var(--sg-red-600); --sg-or: var(--sg-orange-600); --sg-ye: var(--sg-yellow-600); --sg-gr: var(--sg-green-600);", "  --sg-cy: var(--sg-cyan-600); --sg-bl: var(--sg-blue-600); --sg-pu: var(--sg-purple-600); --sg-ma: var(--sg-magenta-600);", "}\n"]
+    if "base" in theme:
+        for step, value in theme["base"].items():
+            key = "paper" if step == "paper" else "ink" if step == "black" else f"base-{step}"
+            css += [f"  --sg-{key}: {value['hex']};", f"  --sg-{key}-oklch: {css_oklch(value['hex'])};"]
+        css += ["", "  /* Light semantic roles */", "  --sg-bg: var(--sg-paper);", "  --sg-bg-2: var(--sg-base-50);", "  --sg-ui: var(--sg-base-100);", "  --sg-ui-2: var(--sg-base-150);", "  --sg-ui-3: var(--sg-base-200);", "  --sg-tx-3: var(--sg-base-300);", "  --sg-tx-2: var(--sg-base-600);", "  --sg-tx: var(--sg-ink);"]
+    else:
+        css += ["  /* Sparse light semantic roles; aliases are intentional. */"]
+        for key, value in theme["semantic"]["light"].items():
+            css.append(f"  --sg-{key.replace('Text', '-text').replace('2', '-2').replace('3', '-3')}: {value['hex']};")
+    css += ["  --sg-re: var(--sg-red-600); --sg-or: var(--sg-orange-600); --sg-ye: var(--sg-yellow-600); --sg-gr: var(--sg-green-600);", "  --sg-cy: var(--sg-cyan-600); --sg-bl: var(--sg-blue-600); --sg-pu: var(--sg-purple-600); --sg-ma: var(--sg-magenta-600);", "}\n"]
     css.append(f'[data-stargazing="{slug}"][data-mode="dark"], [data-stargazing="{slug}"] [data-mode="dark"] {{')
-    css += ["  --sg-bg: var(--sg-ink);", "  --sg-bg-2: var(--sg-base-950);", "  --sg-ui: var(--sg-base-900);", "  --sg-ui-2: var(--sg-base-850);", "  --sg-ui-3: var(--sg-base-800);", "  --sg-tx-3: var(--sg-base-700);", "  --sg-tx-2: var(--sg-base-500);", "  --sg-tx: var(--sg-base-200);", "  --sg-re: var(--sg-red-400); --sg-or: var(--sg-orange-400); --sg-ye: var(--sg-yellow-400); --sg-gr: var(--sg-green-400);", "  --sg-cy: var(--sg-cyan-400); --sg-bl: var(--sg-blue-400); --sg-pu: var(--sg-purple-400); --sg-ma: var(--sg-magenta-400);", "}\n"]
+    if "base" in theme:
+        css += ["  --sg-bg: var(--sg-ink);", "  --sg-bg-2: var(--sg-base-950);", "  --sg-ui: var(--sg-base-900);", "  --sg-ui-2: var(--sg-base-850);", "  --sg-ui-3: var(--sg-base-800);", "  --sg-tx-3: var(--sg-base-700);", "  --sg-tx-2: var(--sg-base-500);", "  --sg-tx: var(--sg-base-200);"]
+    else:
+        for key, value in theme["semantic"]["dark"].items():
+            css.append(f"  --sg-{key.replace('Text', '-text').replace('2', '-2').replace('3', '-3')}: {value['hex']};")
+    css += ["  --sg-re: var(--sg-red-400); --sg-or: var(--sg-orange-400); --sg-ye: var(--sg-yellow-400); --sg-gr: var(--sg-green-400);", "  --sg-cy: var(--sg-cyan-400); --sg-bl: var(--sg-blue-400); --sg-pu: var(--sg-purple-400); --sg-ma: var(--sg-magenta-400);", "}\n"]
 (DIST / "stargazing.css").write_text("\n".join(css))
 
 # Render a deterministic repository preview without browser tooling.
 images = ROOT / "_images"
 images.mkdir(exist_ok=True)
-w, h = 1200, 720
+w, h = 1480, 720
 svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">',
-       '<rect width="1200" height="720" rx="24" fill="#100F0F"/>',
+       f'<rect width="{w}" height="{h}" rx="24" fill="#100F0F"/>',
        '<text x="54" y="72" fill="#F2F0E5" font-family="Georgia,serif" font-size="42">Stargazing</text>',
        '<text x="54" y="105" fill="#878580" font-family="monospace" font-size="13" letter-spacing="2">FOUR PAPERS · ONE PERCEPTUAL SYSTEM</text>']
-col_w, gap, x0, y0 = 264, 12, 54, 145
+gap, x0, y0 = 12, 54, 145
+col_w = (w - 2*x0 - gap*(len(output["themes"])-1)) // len(output["themes"])
 for index, (slug, theme) in enumerate(output["themes"].items()):
     x = x0 + index*(col_w+gap)
     svg.append(f'<text x="{x}" y="{y0}" fill="#CECDC3" font-family="sans-serif" font-size="14">{theme["name"]}</text>')
-    for row, step in enumerate(STEPS):
-        color = theme["base"][step]["hex"]
+    if "base" in theme:
+        colors = [theme["base"][step]["hex"] for step in STEPS]
+    else:
+        light = theme["semantic"]["light"]
+        dark = theme["semantic"]["dark"]
+        colors = [light[key]["hex"] for key in ("bg", "bg2", "ui", "ui2", "ui3", "tx3", "tx2", "tx")] + [dark[key]["hex"] for key in ("tx2", "tx3", "ui3", "ui", "bg2", "bg")]
+        colors.insert(8, dark["tx"]["hex"])
+    for row, color in enumerate(colors):
         svg.append(f'<rect x="{x}" y="{y0+18+row*22}" width="{col_w}" height="22" fill="{color}"/>')
-    svg.append(f'<text x="{x+8}" y="{y0+38}" fill="{theme["base"]["black"]["hex"]}" font-family="monospace" font-size="10">{theme["base"]["paper"]["hex"]}</text>')
-    svg.append(f'<text x="{x+8}" y="{y0+18+15*22-7}" fill="{theme["base"]["paper"]["hex"]}" font-family="monospace" font-size="10">{theme["base"]["black"]["hex"]}</text>')
+    svg.append(f'<text x="{x+8}" y="{y0+38}" fill="{colors[-1]}" font-family="monospace" font-size="10">{colors[0]}</text>')
+    svg.append(f'<text x="{x+8}" y="{y0+18+15*22-7}" fill="{colors[0]}" font-family="monospace" font-size="10">{colors[-1]}</text>')
 accent_y = 526
 for row, (name, shades) in enumerate(SPEC["accents"].items()):
     y = accent_y + row*18

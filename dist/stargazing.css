@@ -441,3 +441,38 @@
   --sg-re: var(--sg-red-400); --sg-or: var(--sg-orange-400); --sg-ye: var(--sg-yellow-400); --sg-gr: var(--sg-green-400);
   --sg-cy: var(--sg-cyan-400); --sg-bl: var(--sg-blue-400); --sg-pu: var(--sg-purple-400); --sg-ma: var(--sg-magenta-400);
 }
+
+[data-stargazing="grey-fruit"] {
+  /* Sparse light semantic roles; aliases are intentional. */
+  --sg-bg: #FEFFFF;
+  --sg-bg-2: #F6F6F6;
+  --sg-ui: #E6E6E6;
+  --sg-ui-2: #DCDCDC;
+  --sg-ui-3: #DCDCDC;
+  --sg-tx-3: #98989D;
+  --sg-tx-2: #464646;
+  --sg-tx: #000000;
+  --sg-cursor: #98989D;
+  --sg-cursor-text: #FFFFFF;
+  --sg-selection: #ABD8FF;
+  --sg-selection-text: #000000;
+  --sg-re: var(--sg-red-600); --sg-or: var(--sg-orange-600); --sg-ye: var(--sg-yellow-600); --sg-gr: var(--sg-green-600);
+  --sg-cy: var(--sg-cyan-600); --sg-bl: var(--sg-blue-600); --sg-pu: var(--sg-purple-600); --sg-ma: var(--sg-magenta-600);
+}
+
+[data-stargazing="grey-fruit"][data-mode="dark"], [data-stargazing="grey-fruit"] [data-mode="dark"] {
+  --sg-bg: #1E1E1E;
+  --sg-bg-2: #282828;
+  --sg-ui: #343434;
+  --sg-ui-2: #464646;
+  --sg-ui-3: #464646;
+  --sg-tx-3: #464646;
+  --sg-tx-2: #98989D;
+  --sg-tx: #FFFFFF;
+  --sg-cursor: #98989D;
+  --sg-cursor-text: #FFFFFF;
+  --sg-selection: #3F638B;
+  --sg-selection-text: #FFFFFF;
+  --sg-re: var(--sg-red-400); --sg-or: var(--sg-orange-400); --sg-ye: var(--sg-yellow-400); --sg-gr: var(--sg-green-400);
+  --sg-cy: var(--sg-cyan-400); --sg-bl: var(--sg-blue-400); --sg-pu: var(--sg-purple-400); --sg-ma: var(--sg-magenta-400);
+}
