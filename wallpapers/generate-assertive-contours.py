@@ -87,24 +87,14 @@ def main() -> None:
     )
 
     base = json.loads(PALETTE.read_text())["themes"]["mineral-paper"]["base"]
-    light = OUT / "mineral-paper-light.png"
     dark = OUT / "mineral-paper-dark.png"
-    for destination, line, background in (
-        (light, base["500"]["hex"], base["paper"]["hex"]),
-        (dark, base["600"]["hex"], base["black"]["hex"]),
-    ):
-        run(
-            magick, final_mask, "+level-colors", f"{line},{background}",
-            "-colorspace", "sRGB", "-define", "png:compression-level=9",
-            "-strip", destination,
-        )
-
     run(
-        magick,
-        "(", light, "-thumbnail", "800x450", ")",
-        "(", dark, "-thumbnail", "800x450", ")",
-        "+append", "-quality", "90", OUT / "contact-sheet.jpg",
+        magick, final_mask,
+        "+level-colors", f"{base['600']['hex']},{base['black']['hex']}",
+        "-colorspace", "sRGB", "-define", "png:compression-level=9",
+        "-strip", dark,
     )
+    run(magick, dark, "-thumbnail", "800x450", "-quality", "90", OUT / "contact-sheet.jpg")
     shutil.rmtree(WORK)
     print(OUT)
 

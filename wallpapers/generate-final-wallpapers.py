@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate all eight final Stargazing wallpapers from the approved gen 11 artwork."""
+"""Generate the five final dark Stargazing wallpapers from approved gen 11 artwork."""
 from __future__ import annotations
 
 import json
@@ -8,12 +8,19 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SOURCE = ROOT / "experiments" / "11-source-aligned-boundaries" / "mineral-paper-light.png"
+SOURCE = ROOT / "experiments" / "11-source-aligned-boundaries" / "mineral-paper-dark.png"
 PALETTE = ROOT.parent / "dist" / "stargazing.json"
 OUT = ROOT / "final"
 
-SOURCE_LINE = "#7E8080"
-SOURCE_BACKGROUND = "#EDF0EF"
+SOURCE_LINE = "#686B6A"
+SOURCE_BACKGROUND = "#0F1111"
+
+# Grey Fruit keeps its semantic UI palette, but its wallpaper uses the
+# Graphite Balanced treatment: neutral, darker, and closer to the other
+# Stargazing families' contrast.
+WALLPAPER_OVERRIDES = {
+    "grey-fruit": {"line": "#626262", "background": "#121212"},
+}
 
 
 def run(*args: object) -> None:
@@ -32,41 +39,29 @@ def main() -> None:
     outputs: list[Path] = []
 
     for slug, theme in themes.items():
-        if "semantic" in theme:
-            variants = tuple(
-                (mode, roles["tx3"]["hex"], roles["bg"]["hex"])
-                for mode, roles in theme["semantic"].items()
-            )
+        override = WALLPAPER_OVERRIDES.get(slug)
+        if override:
+            line, background = override["line"], override["background"]
+        elif "semantic" in theme:
+            roles = theme["semantic"]["dark"]
+            line, background = roles["tx3"]["hex"], roles["bg"]["hex"]
         else:
             base = theme["base"]
-            variants = (
-                ("light", base["500"]["hex"], base["paper"]["hex"]),
-                ("dark", base["600"]["hex"], base["black"]["hex"]),
-            )
-        for mode, line, background in variants:
-            destination = OUT / f"{slug}-{mode}.png"
-            run(
-                magick, SOURCE,
-                "-fill", line, "-opaque", SOURCE_LINE,
-                "-fill", background, "-opaque", SOURCE_BACKGROUND,
-                "-colorspace", "sRGB", "-strip",
-                "-define", "png:compression-level=9", destination,
-            )
-            outputs.append(destination)
-
-    rows: list[Path] = []
-    for index in range(0, len(outputs), 2):
-        row = OUT / f".contact-row-{index // 2}.png"
+            line, background = base["600"]["hex"], base["black"]["hex"]
+        destination = OUT / f"{slug}-dark.png"
         run(
-            magick,
-            "(", outputs[index], "-thumbnail", "800x450", ")",
-            "(", outputs[index + 1], "-thumbnail", "800x450", ")",
-            "+append", row,
+            magick, SOURCE,
+            "-fill", line, "-opaque", SOURCE_LINE,
+            "-fill", background, "-opaque", SOURCE_BACKGROUND,
+            "-colorspace", "sRGB", "-strip",
+            "-define", "png:compression-level=9", destination,
         )
-        rows.append(row)
-    run(magick, *rows, "-append", "-quality", "92", OUT / "contact-sheet.jpg")
-    for row in rows:
-        row.unlink()
+        outputs.append(destination)
+
+    thumbnails: list[object] = []
+    for image in outputs:
+        thumbnails += ["(", image, "-thumbnail", "800x450", ")"]
+    run(magick, *thumbnails, "-append", "-quality", "92", OUT / "contact-sheet.jpg")
     print(OUT)
 
 

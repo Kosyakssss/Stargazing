@@ -29,13 +29,8 @@ def colorize(magick: str, mask: Path, destination: Path, line: str, background: 
     )
 
 
-def contact_sheet(magick: str, light: Path, dark: Path, destination: Path) -> None:
-    run(
-        magick,
-        "(", light, "-thumbnail", "800x450", ")",
-        "(", dark, "-thumbnail", "800x450", ")",
-        "+append", "-quality", "90", destination,
-    )
+def contact_sheet(magick: str, image: Path, destination: Path) -> None:
+    run(magick, image, "-thumbnail", "800x450", "-quality", "90", destination)
 
 
 def main() -> None:
@@ -45,7 +40,6 @@ def main() -> None:
 
     palette = json.loads(PALETTE.read_text())
     base = palette["themes"]["mineral-paper"]["base"]
-    light_colors = (base["500"]["hex"], base["paper"]["hex"])
     dark_colors = (base["600"]["hex"], base["black"]["hex"])
 
     shutil.rmtree(WORK, ignore_errors=True)
@@ -140,13 +134,11 @@ def main() -> None:
     comparison_rows: list[Path] = []
     for index, (name, mask) in enumerate(experiments.items(), start=1):
         directory = ROOT / "experiments" / name
-        light = directory / "mineral-paper-light.png"
         dark = directory / "mineral-paper-dark.png"
-        colorize(magick, mask, light, *light_colors)
         colorize(magick, mask, dark, *dark_colors)
-        contact_sheet(magick, light, dark, directory / "contact-sheet.jpg")
+        contact_sheet(magick, dark, directory / "contact-sheet.jpg")
         row = WORK / f"comparison-{index}.png"
-        contact_sheet(magick, light, dark, row)
+        contact_sheet(magick, dark, row)
         comparison_rows.append(row)
         print(directory)
 

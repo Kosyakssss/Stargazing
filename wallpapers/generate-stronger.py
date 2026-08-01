@@ -60,36 +60,28 @@ def main() -> None:
 
     files: list[Path] = []
     for slug, theme in palette["themes"].items():
-        base = theme["base"]
-        variants = {
-            "light": (mix(base["400"]["hex"], base["500"]["hex"]), base["paper"]["hex"]),
-            "dark": (mix(base["700"]["hex"], base["600"]["hex"]), base["black"]["hex"]),
-        }
-        for mode, (line, background) in variants.items():
-            destination = OUTPUT / f"{slug}-{mode}.png"
-            run(
-                magick, master,
-                "+level-colors", f"{line},{background}",
-                "-colorspace", "sRGB",
-                "-define", "png:compression-level=9",
-                "-strip",
-                destination,
-            )
-            files.append(destination)
-            print(destination)
-
-    # Two columns: light and dark. Rows follow palette family order.
-    rows: list[Path] = []
-    for index in range(0, len(files), 2):
-        row = WORK / f"row-{index // 2}.png"
+        if "semantic" in theme:
+            roles = theme["semantic"]["dark"]
+            line, background = roles["tx3"]["hex"], roles["bg"]["hex"]
+        else:
+            base = theme["base"]
+            line, background = mix(base["700"]["hex"], base["600"]["hex"]), base["black"]["hex"]
+        destination = OUTPUT / f"{slug}-dark.png"
         run(
-            magick,
-            "(", files[index], "-thumbnail", "800x450", ")",
-            "(", files[index + 1], "-thumbnail", "800x450", ")",
-            "+append", row,
+            magick, master,
+            "+level-colors", f"{line},{background}",
+            "-colorspace", "sRGB",
+            "-define", "png:compression-level=9",
+            "-strip",
+            destination,
         )
-        rows.append(row)
-    run(magick, *rows, "-append", "-quality", "90", ROOT / "contact-sheet-stronger.jpg")
+        files.append(destination)
+        print(destination)
+
+    thumbnails: list[object] = []
+    for image in files:
+        thumbnails += ["(", image, "-thumbnail", "800x450", ")"]
+    run(magick, *thumbnails, "-append", "-quality", "90", ROOT / "contact-sheet-stronger.jpg")
 
 
 if __name__ == "__main__":
